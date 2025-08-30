@@ -1,33 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
-#include <signal.h>
-#include <unistd.h>
-#include <net/if.h>
-#include <linux/if_link.h>
-#include <bpf/libbpf.h>
-#include <bpf/bpf.h>
-#include "netspy.skel.h"
-
-static volatile bool exiting = false;
-
-static void sig_handler(int sig) {
-    exiting = true;
-}
-
-static int libbpf_print_fn(enum libbpf_print_level level, const char *format, va_list args) {
-    return vfprintf(stderr, format, args);
-}
-
-static void handle_event(void *ctx, int cpu, void *data, __u32 size) {
-    // Обработка событий из perf buffer
-    printf("Received event of size %u\n", size);
-}
-
-static void handle_lost_events(void *ctx, int cpu, __u64 lost_cnt) {
-    fprintf(stderr, "Lost %llu events on CPU %d\n", lost_cnt, cpu);
-}
+#include "netspy.h"
 
 int main(int argc, char **argv) {
     struct netspy_bpf *skel = NULL;
@@ -106,4 +77,21 @@ cleanup:
     }
 
     return err < 0 ? 1 : 0;
+}
+
+static void sig_handler(int sig) {
+    exiting = true;
+}
+
+static int libbpf_print_fn(enum libbpf_print_level level, const char *format, va_list args) {
+    return vfprintf(stderr, format, args);
+}
+
+static void handle_event(void *ctx, int cpu, void *data, __u32 size) {
+    // Обработка событий из perf buffer
+    printf("Received event of size %u\n", size);
+}
+
+static void handle_lost_events(void *ctx, int cpu, __u64 lost_cnt) {
+    fprintf(stderr, "Lost %llu events on CPU %d\n", lost_cnt, cpu);
 }
