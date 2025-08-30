@@ -8,7 +8,7 @@ struct {
 } output_map SEC(".maps");
 
 SEC("xdp")
-int xdp_dilih(struct xdp_md *ctx)
+int xdp_netspy(struct xdp_md *ctx)
 {
 	struct perf_trace_event e = {};
 

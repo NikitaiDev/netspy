@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
     }
 
     // Присоединяем XDP программу к интерфейсу
-    err = bpf_xdp_attach(ifindex, bpf_program__fd(skel->progs.xdp_dilih), XDP_FLAGS_UPDATE_IF_NOEXIST, NULL);
+    err = bpf_xdp_attach(ifindex, bpf_program__fd(skel->progs.xdp_netspy), XDP_FLAGS_UPDATE_IF_NOEXIST, NULL);
     if (err) {
         fprintf(stderr, "Failed to attach XDP program: %d\n", err);
         goto cleanup;
