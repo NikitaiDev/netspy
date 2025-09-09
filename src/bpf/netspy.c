@@ -29,6 +29,20 @@ int main(int argc, char **argv) {
         fprintf(stderr, "Failed to load BPF skeleton: %d\n", err);
         goto cleanup;
     }
+    skel->links.tcp_connect = bpf_program__attach(skel->progs.tcp_connect);
+    if (!skel->links.tcp_connect) {
+        fprintf(stderr, "Failed to attach tcp_connect: %d\n", errno);
+    }
+
+    skel->links.tcp_close = bpf_program__attach(skel->progs.tcp_close);
+    if (!skel->links.tcp_close) {
+        fprintf(stderr, "Failed to attach tcp_close: %d\n", errno);
+    }
+
+    skel->links.tcp_sendmsg = bpf_program__attach(skel->progs.tcp_sendmsg);
+    if (!skel->links.tcp_sendmsg) {
+        fprintf(stderr, "Failed to attach tcp_sendmsg: %d\n", errno);
+    }
 
     skel->links.tracepoint_sys_enter_execve = bpf_program__attach(skel->progs.tracepoint_sys_enter_execve);
     if (!skel->links.tracepoint_sys_enter_execve) {
@@ -74,6 +88,7 @@ int main(int argc, char **argv) {
         time_t now = time(NULL);
         if (now - last_print >= 5) {
             print_pids_map(skel);
+            print_connections_map(skel);
             last_print = now;
         }
     }
@@ -146,4 +161,35 @@ static void print_pids_map(struct netspy_bpf *skel) {
         key = next_key;
     }
     printf("========================\n\n");
+}
+
+static void print_connections_map(struct netspy_bpf *skel) {
+    printf("\n=== Active Connections ===\n");
+    printf("%-15s %-6s %-15s %-6s %-12s %-12s %-12s %s\n",
+           "Source", "Port", "Dest", "Port", "Sent", "Received", "State", "Process");
+    printf("----------------------------------------------------------------------------\n");
+    
+    struct connection_key key = {}, next_key;
+    struct connection_info info;
+    int map_fd = bpf_map__fd(skel->maps.connections);
+    
+    while (bpf_map_get_next_key(map_fd, &key, &next_key) == 0) {
+        if (bpf_map_lookup_elem(map_fd, &next_key, &info) == 0) {
+            const char *state_str;
+            switch (info.state) {
+                case CONN_CLOSED: state_str = "CLOSED"; break;
+                case CONN_ACTIVE: state_str = "ACTIVE"; break;
+                case CONN_ESTABLISHED: state_str = "ESTAB"; break;
+                default: state_str = "UNKNOWN"; break;
+            }
+            
+            printf("%-15s %-6d %-15s %-6d %-12llu %-12llu %-12s %s(%d)\n",
+                   inet_ntoa(*(struct in_addr*)&next_key.saddr), next_key.sport,
+                   inet_ntoa(*(struct in_addr*)&next_key.daddr), next_key.dport,
+                   info.bytes_sent, info.bytes_received,
+                   state_str, info.process_comm, info.pid);
+        }
+        key = next_key;
+    }
+    printf("============================================================================\n\n");
 }
