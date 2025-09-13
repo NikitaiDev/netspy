@@ -1,4 +1,4 @@
-BUILD_DIR ?= ../../build
+BUILD_DIR ?= ../build
 BPF_BUILD_DIR = $(BUILD_DIR)/bpf
 OBJ_DIR = $(BPF_BUILD_DIR)/obj
 
@@ -7,12 +7,12 @@ KERNEL_HEADERS := /usr/src/linux-headers-$(KERNEL_VERSION)
 
 OUTPUT := .output
 CLANG ?= clang
-LIBBPF_SRC := $(abspath ../third_party/libbpf/src)
-BPFTOOL_SRC := $(abspath ../third_party/bpftool/src)
+LIBBPF_SRC := $(abspath third_party/libbpf/src)
+BPFTOOL_SRC := $(abspath third_party/bpftool/src)
 LIBBPF_OBJ := $(abspath $(OUTPUT)/libbpf.a)
 BPFTOOL_OUTPUT ?= $(abspath $(OUTPUT)/bpftool)
 BPFTOOL ?= $(BPFTOOL_OUTPUT)/bootstrap/bpftool
-LIBBLAZESYM_SRC := $(abspath ../third_party/blazesym/)
+LIBBLAZESYM_SRC := $(abspath third_party/blazesym/)
 LIBBLAZESYM_OBJ := $(abspath $(OUTPUT)/libblazesym.a)
 LIBBLAZESYM_HEADER := $(abspath $(OUTPUT)/blazesym.h)
 ARCH ?= $(shell uname -m | sed 's/x86_64/x86/' \
@@ -22,9 +22,9 @@ ARCH ?= $(shell uname -m | sed 's/x86_64/x86/' \
 			 | sed 's/mips.*/mips/' \
 			 | sed 's/riscv64/riscv/' \
 			 | sed 's/loongarch64/loongarch/')
-VMLINUX := ../third_party/vmlinux/$(ARCH)/vmlinux.h
+VMLINUX := third_party/vmlinux/$(ARCH)/vmlinux.h
 
-INCLUDES := -I$(OUTPUT) -I../third_party/libbpf/include/uapi -I$(dir $(VMLINUX))
+INCLUDES := -I$(OUTPUT) -Ithird_party/libbpf/include/uapi -I$(dir $(VMLINUX))
 CFLAGS := -g -Wall
 ALL_LDFLAGS := $(LDFLAGS) $(EXTRA_LDFLAGS)
 
