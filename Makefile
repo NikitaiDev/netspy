@@ -4,20 +4,16 @@ export BUILD_DIR ?= $(CURDIR)/build
 export SRC_DIR = $(CURDIR)/src
 
 .PHONY: all
-all: bpf daemon
+all: api
 
-.PHONY: bpf
-bpf:
-	$(MAKE) -C $(SRC_DIR)/bpf
+.PHONY: api
+api:
+	$(MAKE) -C $(SRC_DIR)
 
-.PHONY: daemon
-daemon: bpf
-	$(MAKE) -C $(SRC_DIR)/daemon
 
 .PHONY: clean
 clean:
-	$(MAKE) -C $(SRC_DIR)/bpf clean
-	$(MAKE) -C $(SRC_DIR)/daemon clean
+	$(MAKE) -C $(SRC_DIR) clean
 	rm -rf $(BUILD_DIR)
 
 .PHONY: run
